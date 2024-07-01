@@ -2,11 +2,11 @@ import json
 import os
 from typing import Dict, Container, Optional, Union, List, Mapping
 
-import aiohttp
 from aiofile import AIOFile
 from async_lru import alru_cache
 from joserfc import jwk, jwt
 from joserfc.errors import BadSignatureError
+from httpx import AsyncClient
 
 from fastapi_cognito.cognito_jwt.constants import PUBLIC_KEYS_URL_TEMPLATE
 from fastapi_cognito.cognito_jwt.exceptions import CognitoJWTException
@@ -22,9 +22,9 @@ async def __get_keys_async(keys_url: str) -> List[dict]:
     :return: List of public keys
     """
     if keys_url.startswith("http"):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(keys_url) as resp:
-                response = await resp.json()
+        async with AsyncClient() as client:
+            resp = await client.get(keys_url)
+            response = resp.json()
     else:
         async with AIOFile(keys_url, 'r') as afp:
             f = await afp.read()
